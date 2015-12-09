@@ -11,17 +11,18 @@ import spark.template.freemarker.FreeMarkerEngine;
 import spark.ModelAndView;
 
 
-public class Main {
 
-  public static String getURLContent(String url) throws IOException {
+//Spark web application.  Accepts gets and posts on / only
+public class Main {
+  //Apache http client. Tries to do some simple validation on url and lookup.
+  public static String getURLContent(String url) {
     //better testing could be done.
     if (url == null || url.length() == 0) { return ""; }
     
+    //We are only doing http and https.  no ftp etc
     String[] schemes = {"http","https"};
     UrlValidator urlValidator = new UrlValidator(schemes);
-    if (urlValidator.isValid(url)) {
-      
-    } else {
+    if (!urlValidator.isValid(url)) {
        return "URL is invalid.  Make sure to choose protocol (http:// or https://)";
     }
     
@@ -68,7 +69,8 @@ public class Main {
     return responseBody;
   }
   public static void main(String[] args) {
-
+    //throws a boxing error in findbugs, but thats fine. Seems to be
+    //what heroku wants.
     port(Integer.valueOf(System.getenv("PORT")));
     staticFileLocation("/public");
 
@@ -76,12 +78,9 @@ public class Main {
       String url = request.queryParams("address");
       String responseText = "";
       
-      try {
-        responseText = getURLContent(url);
-      } catch (Exception e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      }
+
+      responseText = getURLContent(url);
+
       HTMLTagParse hp = new HTMLTagParse();
       responseText = hp.replaceTagsString(responseText);
       //responseText = hp.replaceTags(responseText);

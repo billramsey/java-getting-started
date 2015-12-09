@@ -15,9 +15,8 @@ FreeMarker Java Template Engine for View.
 
 
 ## Some design choices
-It will highlight tags that are in the html, script, etc.
+It will highlight tags that are in the html, script, etc. but only valid tags.
 
-It pulls the list of all valid tags from javax.swing.text.html.HTML.
+It pulls the list of all valid tags from the Jericho HTML Parsers library. Although not complete, this is extensible if you want to add more. (I added !doctype)
 
-Parsing was done with Regex.  Any sort of html parsing engine agressively
-tried to fix bad HTML, which would probably negate the point of examining it.
+Parsing was done looking through the returned data character by character.  Any sort of html parsing engine agressively tried to fix bad HTML, which would probably negate the point of examining it.

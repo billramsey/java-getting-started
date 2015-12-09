@@ -1,15 +1,21 @@
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.swing.text.html.HTML;
-
-
+import net.htmlparser.jericho.HTMLElements;
 
 
 public class HTMLTagParse {
 
-  HashMap<String, Integer> tagCount = new HashMap<String, Integer>();
+  private HashMap<String, Integer> tagCount = new HashMap<String, Integer>();
+  private HashSet<String> TAGS;
+  
+  public HTMLTagParse() {
+    TAGS = new HashSet<String>(HTMLElements.getElementNames());
+    TAGS.add("!doctype");
+  }
+  
   
   public HashMap<String, Integer> getTagCount() {
     return tagCount;
@@ -17,7 +23,7 @@ public class HTMLTagParse {
   public void addTag(String tag) {
     if (tagCount.containsKey(tag)) {
       int count = tagCount.get(tag);
-      tagCount.put(tag,count + 1);
+      tagCount.put(tag, count + 1);
     } else {
       tagCount.put(tag, 1);
     }
@@ -34,29 +40,32 @@ public class HTMLTagParse {
       String text = m.group(1);
       //System.out.println("text1: " + text);
       String text2 = m.group(2);
-      text2 = text2.replace("<","&lt;");
-      text2 = text2.replace(">","&gt;");
+      text2 = text2.replace("<", "&lt;");
+      text2 = text2.replace(">", "&gt;");
       String text3 = m.group(3);
-      text3 = text3.replace(">","&gt;");
+      text3 = text3.replace(">", "&gt;");
       //
       String tag = text2;
       //System.out.println("found: " + tag);
       if (tag.length() > 0 && tag.charAt(0) == '/') {
         tag = text2.substring(1, text2.length());
       }
-      if (HTML.getTag(tag) != null) {
+      if (TAGS.contains(tag.toLowerCase())) {
         if (tagCount.containsKey(tag)) {
           int count = tagCount.get(tag);
-          tagCount.put(tag,count + 1);
+          tagCount.put(tag, count + 1);
         } else {
           tagCount.put(tag, 1);
         }
         System.out.println("Found tag: " + tag);
-        m.appendReplacement(sb, "&lt;<span class=\"tag_toggle_" + tag + "\">" + Matcher.quoteReplacement(text2) +  "</span>" + Matcher.quoteReplacement(text3));
+        m.appendReplacement(sb, "&lt;<span class=\"tag_toggle_" + tag + "\">" 
+            + Matcher.quoteReplacement(text2) 
+            +  "</span>" + Matcher.quoteReplacement(text3));
       } else {
         m.find(m.start());
         System.out.println("could not find tag: " + tag);
-        m.appendReplacement(sb, "&lt;" + Matcher.quoteReplacement(text2) + Matcher.quoteReplacement(text3));
+        m.appendReplacement(sb, "&lt;" + Matcher.quoteReplacement(text2) 
+            + Matcher.quoteReplacement(text3));
       }
     }
     m.appendTail(sb);
@@ -69,7 +78,7 @@ public class HTMLTagParse {
     int i = 0;
     int totalLength = htmlString.length();
     while (i < totalLength)  {
-      Character c = htmlString.charAt(i);
+      char c = htmlString.charAt(i);
       if (c == '<') {
         //System.out.println("c: " + c);
         //append the escaped <
@@ -92,19 +101,22 @@ public class HTMLTagParse {
           tag.append(subchar);
           j++;
         }
+        
         //See if we found a tag.  Add it to the output
-        if (HTML.getTag(tag.toString()) != null) {
-          
-          addTag(tag.toString());
-          sb.append("<span class=\"tag_toggle_" + tag.toString() + "\">" + tag.toString() + "</span>");
+        if (TAGS.contains(tag.toString().toLowerCase())) {
+          String cleanTag = tag.toString().toLowerCase();
+          addTag(cleanTag);
+          sb.append("<span class=\"tag_toggle_" + cleanTag + "\">" 
+              + tag.toString() + "</span>");
           //advance to j - 1 (remember we incr below)
           i = j - 1;
         } else {
-          //Do nothing.  We found no tag, and it could be overlapping like <=4<script.
+          //Do nothing. We found no tag, and it could be overlapping 
+          //like <=4<script.
           //so we just go on to the next character.
           //System.out.println("Continuing");
         }
-      } else if(c == '>') {
+      } else if (c == '>') {
         //escape <
         sb.append("&gt;");
       } else {
@@ -119,18 +131,26 @@ public class HTMLTagParse {
   }
 
   
+  
+  
+  
   public static void main(String[] args) {
-    String foo = "<html><script>5<=4</script><body> blah <input type = \"submit\">goes here <\"==a.charAt(0)?a.replace(/<\\w+/,\" $&  </body></html><";
+    String foo = "<html><script>5<=4</script><body> blah <input type =" 
+        + "\"submit\">goes here <\"==a.charAt(0)?a.replace(/<\\w+/,\" $&"
+        + "</body></html><";
     HTMLTagParse hp = new HTMLTagParse();
     //System.out.println(hp.replaceTags(foo));
     System.out.println("old:");
     System.out.println(foo);
     System.out.println("new");
     System.out.println(hp.replaceTagsString(foo));
-    HashMap<String, Integer> tags = hp.getTagCount();
+    
+    /*
+     HashMap<String, Integer> tags = hp.getTagCount();
     for (String tag: tags.keySet()) {
       System.out.println(tag + " : " + tags.get(tag));
     }
+    */
     String b = "g \n t";
     System.out.println(hp.replaceTagsString(b));
     StringBuilder sb = new StringBuilder();
@@ -139,5 +159,11 @@ public class HTMLTagParse {
     }
     System.out.println("b:  " + b);
     System.out.println("sb: " + sb.toString());
+    
+    HashSet<String> TAGS = new HashSet<String>(HTMLElements.getElementNames());
+    //  TAGS.add("!doctype");
+
+    System.out.println(TAGS.contains("!DOCTYPE"));
+    
   }
 }
