@@ -13,7 +13,8 @@ public class HTMLTagParse {
   
   public HTMLTagParse() {
     TAGS = new HashSet<String>(HTMLElements.getElementNames());
-    TAGS.add("!doctype");
+    //add custom tags here
+    //TAGS.add("mytag");
   }
   
   
