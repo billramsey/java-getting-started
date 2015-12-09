@@ -1,60 +1,107 @@
-import java.sql.*;
 import java.util.HashMap;
-import java.util.ArrayList;
 import java.util.Map;
+import java.io.IOException;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import org.apache.commons.httpclient.*;
+import org.apache.commons.httpclient.methods.*;
+import org.apache.commons.validator.UrlValidator;
 
 import static spark.Spark.*;
 import spark.template.freemarker.FreeMarkerEngine;
 import spark.ModelAndView;
-import static spark.Spark.get;
 
-import com.heroku.sdk.jdbc.DatabaseUrl;
 
 public class Main {
 
+  public static String getURLContent(String url) throws IOException {
+    //better testing could be done.
+    if (url == null || url.length() == 0) { return ""; }
+    
+    String[] schemes = {"http","https"};
+    UrlValidator urlValidator = new UrlValidator(schemes);
+    if (urlValidator.isValid(url)) {
+      
+    } else {
+       return "URL is invalid.  Make sure to choose protocol (http:// or https://)";
+    }
+    
+    String responseBody = "";
+    
+    HttpClient client = new HttpClient();
+
+    // Create a method instance.
+    GetMethod method = new GetMethod(url);
+    
+    // Provide custom retry handler is necessary
+    /*
+    method.getParams().setParameter(HttpMethodParams.RETRY_HANDLER, 
+            new DefaultHttpMethodRetryHandler(2, false));
+     */
+    try {
+      // Execute the method.
+      int statusCode = client.executeMethod(method);
+
+      if (statusCode != HttpStatus.SC_OK) {
+        return("Method failed: " + method.getStatusLine());
+      }
+
+      // Read the response body.
+      /*
+      InputStreamReader breader = new InputStreamReader(method.getResponseBodyAsStream());
+      StringBuffer sb = new StringBuffer();
+      int c;
+      while ((c = breader.read()) != -1) {
+          sb.append(c);
+      }
+       responseBody = sb.toString();
+       */
+      responseBody = method.getResponseBodyAsString();
+    } catch (HttpException e) {
+
+      return("Fatal protocol violation: " + e.getMessage());
+    } catch (IOException e) {
+      return("Fatal transport error: " + e.getMessage());
+    } finally {
+      // Release the connection.
+      method.releaseConnection();
+    }
+    return responseBody;
+  }
   public static void main(String[] args) {
 
     port(Integer.valueOf(System.getenv("PORT")));
     staticFileLocation("/public");
 
-    get("/hello", (req, res) -> "Hello World");
+    post("/", (request, response) -> {
+      String url = request.queryParams("address");
+      String responseText = "";
+      
+      try {
+        responseText = getURLContent(url);
+      } catch (Exception e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+      HTMLTagParse hp = new HTMLTagParse();
+      responseText = hp.replaceTagsString(responseText);
+      //responseText = hp.replaceTags(responseText);
+      Map<String, Object> attributes = new HashMap<>();
+      attributes.put("count", hp.getTagCount());
+      attributes.put("address", url);
+      attributes.put("source", responseText);
+
+      return new ModelAndView(attributes, "home.ftl");
+    }, new FreeMarkerEngine());
 
     get("/", (request, response) -> {
             Map<String, Object> attributes = new HashMap<>();
-            attributes.put("message", "Hello World!");
-
+            
+            attributes.put("address", "");
+            attributes.put("source", "");
+            
             return new ModelAndView(attributes, "home.ftl");
         }, new FreeMarkerEngine());
-
-    get("/db", (req, res) -> {
-      Connection connection = null;
-      Map<String, Object> attributes = new HashMap<>();
-      try {
-        connection = DatabaseUrl.extract().getConnection();
-
-        Statement stmt = connection.createStatement();
-        stmt.executeUpdate("CREATE TABLE IF NOT EXISTS ticks (tick timestamp)");
-        stmt.executeUpdate("INSERT INTO ticks VALUES (now())");
-        ResultSet rs = stmt.executeQuery("SELECT tick FROM ticks");
-
-        ArrayList<String> output = new ArrayList<String>();
-        while (rs.next()) {
-          output.add( "Read from DB: " + rs.getTimestamp("tick"));
-        }
-
-        attributes.put("results", output);
-        return new ModelAndView(attributes, "db.ftl");
-      } catch (Exception e) {
-        attributes.put("message", "There was an error: " + e);
-        return new ModelAndView(attributes, "error.ftl");
-      } finally {
-        if (connection != null) try{connection.close();} catch(SQLException e){}
-      }
-    }, new FreeMarkerEngine());
-
+    
   }
 
 }

@@ -1,38 +1,23 @@
-# java-getting-started
+# HTML Parser/Viewer
 
-A barebones Java app, which can easily be deployed to Heroku.  
+Based off the Java getting started app for Heroku for ease of deployment to Heroku.
+https://github.com/heroku/java-getting-started
 
-This application support the [Getting Started with Java on Heroku](https://devcenter.heroku.com/articles/getting-started-with-java) article - check it out.
 
-## Running Locally
+## Usage
 
-Make sure you have Java and Maven installed.  Also, install the [Heroku Toolbelt](https://toolbelt.heroku.com/).
+Simple site for viewing and HTML from a web page.
 
-```sh
-$ git clone https://github.com/heroku/java-getting-started.git
-$ cd java-getting-started
-$ mvn install
-$ foreman start web
-```
+Uses Heroku for easy deployment.
+Sparks for simple java web framework.
+JQuery and Bootstrap for JS and CSS. (pulls from CDN.  No local copy)
+FreeMarker Java Template Engine for View.
 
-Your app should now be running on [localhost:5000](http://localhost:5000/).
 
-If you're going to use a database, ensure you have a local `.env` file that reads something like this:
+## Some design choices
+It will highlight tags that are in the html, script, etc.
 
-```
-DATABASE_URL=postgres://localhost:5432/java_database_name
-```
+It pulls the list of all valid tags from javax.swing.text.html.HTML.
 
-## Deploying to Heroku
-
-```sh
-$ heroku create
-$ git push heroku master
-$ heroku open
-```
-
-## Documentation
-
-For more information about using Java on Heroku, see these Dev Center articles:
-
-- [Java on Heroku](https://devcenter.heroku.com/categories/java)
+Parsing was done with Regex.  Any sort of html parsing engine agressively
+tried to fix bad HTML, which would probably negate the point of examining it.

@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.example</groupId>
   <version>1.0-SNAPSHOT</version>
-  <artifactId>helloworld</artifactId>
+  <artifactId>htmlviewer</artifactId>
   <dependencies>
     <dependency>
       <groupId>com.sparkjava</groupId>
@@ -18,15 +18,27 @@
       <version>2.0.0</version>
     </dependency>
     <dependency>
-      <groupId>org.postgresql</groupId>
-      <artifactId>postgresql</artifactId>
-      <version>9.4-1201-jdbc4</version>
-    </dependency>
-    <dependency>
       <groupId>com.heroku.sdk</groupId>
       <artifactId>heroku-jdbc</artifactId>
       <version>0.1.1</version>
     </dependency>
+    <dependency>
+  <groupId>commons-validator</groupId>
+  <artifactId>commons-validator</artifactId>
+  <version>1.3.1</version>
+    </dependency>
+    <dependency>
+  <groupId>oro</groupId>
+  <artifactId>oro</artifactId>
+  <version>2.0.8</version>
+</dependency>
+    
+    
+<dependency>
+  <groupId>commons-httpclient</groupId>
+  <artifactId>commons-httpclient</artifactId>
+  <version>3.1</version>
+</dependency>
   </dependencies>
   <build>
     <plugins>
